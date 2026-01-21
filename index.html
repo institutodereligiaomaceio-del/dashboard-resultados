@@ -1,0 +1,56 @@
+<script>
+Papa.parse("Dashboard resultados 2025.csv", {
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+    complete: function(results) {
+
+        const dados = results.data;
+
+        // Usa a primeira coluna como categoria (ex: curso, período, ano)
+        const categorias = dados.map(d => Object.values(d)[0]);
+
+        const matriculados = dados.map(d => Number(d["Matriculados"]));
+        const aprovados    = dados.map(d => Number(d["Aprovados"]));
+        const formandos    = dados.map(d => Number(d["Formandos"]));
+        const avancados    = dados.map(d => Number(d["Avançados"]));
+
+        // 📊 Gráfico de barras
+        Plotly.newPlot("graficoBarra", [
+            { x: categorias, y: matriculados, name: "Matriculados", type: "bar" },
+            { x: categorias, y: aprovados,    name: "Aprovados",    type: "bar" },
+            { x: categorias, y: formandos,    name: "Formandos",    type: "bar" },
+            { x: categorias, y: avancados,    name: "Avançados",    type: "bar" }
+        ], {
+            title: "Comparação de Resultados",
+            barmode: "group"
+        });
+
+        // 📈 Gráfico de linha (desempenho)
+        Plotly.newPlot("graficoLinha", [
+            { 
+                x: categorias, 
+                y: aprovados, 
+                name: "Aprovados", 
+                type: "scatter", 
+                mode: "lines+markers" 
+            }
+        ], {
+            title: "Evolução de Aprovados"
+        });
+
+        // 📋 Tabela
+        const tabela = document.getElementById("tabela");
+        const colunas = Object.keys(dados[0]);
+
+        tabela.innerHTML =
+            "<tr>" + colunas.map(c => `<th>${c}</th>`).join("") + "</tr>" +
+            dados.map(l =>
+                "<tr>" + colunas.map(c => `<td>${l[c]}</td>`).join("") + "</tr>"
+            ).join("");
+    },
+    error: function(err) {
+        console.error("Erro ao carregar CSV:", err);
+    }
+});
+</script>
